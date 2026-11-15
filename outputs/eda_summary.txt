@@ -1,0 +1,75 @@
+UCI Student Performance - Portuguese course
+============================================================
+Records: 649   Attributes: 33 (32 inputs + target G3)
+Missing values: 0   Duplicate rows: 0
+Categorical inputs: 17   Numeric / ordinal inputs: 15
+
+Final grade (G3) statistics
+count    649.00
+mean      11.91
+std        3.23
+min        0.00
+25%       10.00
+50%       12.00
+75%       14.00
+max       19.00
+Students with G3 = 0: 15
+
+Performance category distribution
+  Low     G3 0-9 (fail)                 100  (15.4%)
+  Medium  G3 10-13 (pass)               355  (54.7%)
+  High    G3 14-20 (good / excellent)   194  (29.9%)
+
+Correlation of numeric inputs with G3 (Pearson)
+G2            0.919
+G1            0.826
+failures     -0.393
+studytime     0.250
+Medu          0.240
+Fedu          0.212
+Dalc         -0.205
+Walc         -0.177
+traveltime   -0.127
+freetime     -0.123
+age          -0.107
+health       -0.099
+absences     -0.091
+goout        -0.088
+famrel        0.063
+
+Numeric feature summary
+            count   mean   std   min   25%   50%   75%   max
+age         649.0  16.74  1.22  15.0  16.0  17.0  18.0  22.0
+Medu        649.0   2.51  1.13   0.0   2.0   2.0   4.0   4.0
+Fedu        649.0   2.31  1.10   0.0   1.0   2.0   3.0   4.0
+traveltime  649.0   1.57  0.75   1.0   1.0   1.0   2.0   4.0
+studytime   649.0   1.93  0.83   1.0   1.0   2.0   2.0   4.0
+failures    649.0   0.22  0.59   0.0   0.0   0.0   0.0   3.0
+famrel      649.0   3.93  0.96   1.0   4.0   4.0   5.0   5.0
+freetime    649.0   3.18  1.05   1.0   3.0   3.0   4.0   5.0
+goout       649.0   3.18  1.18   1.0   2.0   3.0   4.0   5.0
+Dalc        649.0   1.50  0.92   1.0   1.0   1.0   2.0   5.0
+Walc        649.0   2.28  1.28   1.0   1.0   2.0   3.0   5.0
+health      649.0   3.54  1.45   1.0   2.0   4.0   5.0   5.0
+absences    649.0   3.66  4.64   0.0   0.0   2.0   6.0  32.0
+G1          649.0  11.40  2.75   0.0  10.0  11.0  13.0  19.0
+G2          649.0  11.57  2.91   0.0  10.0  11.0  13.0  19.0
+
+Mean G3 by categorical feature
+  school: GP=12.58 (n=423), MS=10.65 (n=226)
+  sex: F=12.25 (n=383), M=11.41 (n=266)
+  address: R=11.09 (n=197), U=12.26 (n=452)
+  famsize: GT3=11.81 (n=457), LE3=12.13 (n=192)
+  Pstatus: A=11.91 (n=80), T=11.91 (n=569)
+  Mjob: at_home=11.04 (n=135), health=13.06 (n=48), other=11.67 (n=258), services=12.15 (n=136), teacher=13.14 (n=72)
+  Fjob: at_home=11.43 (n=42), health=12.57 (n=23), other=11.89 (n=367), services=11.63 (n=181), teacher=13.58 (n=36)
+  reason: course=11.55 (n=285), home=12.18 (n=149), other=10.69 (n=72), reputation=12.94 (n=143)
+  guardian: father=12.2 (n=153), mother=11.9 (n=455), other=10.9 (n=41)
+  schoolsup: no=11.98 (n=581), yes=11.28 (n=68)
+  famsup: no=11.67 (n=251), yes=12.06 (n=398)
+  paid: no=11.95 (n=610), yes=11.21 (n=39)
+  activities: no=11.72 (n=334), yes=12.1 (n=315)
+  nursery: no=11.72 (n=128), yes=11.95 (n=521)
+  higher: no=8.8 (n=69), yes=12.28 (n=580)
+  internet: no=11.03 (n=151), yes=12.17 (n=498)
+  romantic: no=12.13 (n=410), yes=11.52 (n=239)

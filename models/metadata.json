@@ -1,0 +1,120 @@
+{
+  "dataset": "UCI Student Performance - Portuguese course (student-por.csv)",
+  "n_records": 649,
+  "n_train": 519,
+  "n_test": 130,
+  "class_names": [
+    "Low",
+    "Medium",
+    "High"
+  ],
+  "class_rules": {
+    "Low": "G3 0-9 (fail)",
+    "Medium": "G3 10-13 (pass)",
+    "High": "G3 14-20 (good / excellent)"
+  },
+  "selected_features": [
+    "school",
+    "Mjob",
+    "reason",
+    "higher",
+    "age",
+    "Medu",
+    "Fedu",
+    "studytime",
+    "failures",
+    "freetime",
+    "Walc",
+    "health",
+    "absences",
+    "G1",
+    "G2"
+  ],
+  "defaults": {
+    "school": "GP",
+    "Mjob": "other",
+    "reason": "course",
+    "higher": "yes",
+    "age": 17.0,
+    "Medu": 2,
+    "Fedu": 2,
+    "studytime": 2,
+    "failures": 0,
+    "freetime": 3,
+    "Walc": 1,
+    "health": 5,
+    "absences": 2.0,
+    "G1": 11.0,
+    "G2": 11.0
+  },
+  "dnn_hyperparameters": {
+    "hidden_units": [
+      64,
+      32
+    ],
+    "dropout": 0.1,
+    "l2": 0.001,
+    "learning_rate": 0.0003,
+    "batch_size": 32,
+    "batch_norm": false
+  },
+  "dnn_epochs_trained": 110,
+  "ml_best_params": {
+    "Logistic Regression": {
+      "C": 10,
+      "class_weight": null
+    },
+    "Random Forest": {
+      "class_weight": "balanced",
+      "max_depth": null,
+      "min_samples_leaf": 3,
+      "n_estimators": 200
+    },
+    "SVM (RBF)": {
+      "C": 10,
+      "class_weight": null,
+      "gamma": 0.01
+    }
+  },
+  "best_traditional_model": "Random Forest",
+  "test_metrics": {
+    "Logistic Regression": {
+      "accuracy": 0.8538,
+      "precision_macro": 0.8436,
+      "recall_macro": 0.8154,
+      "f1_macro": 0.8261,
+      "f1_weighted": 0.8514,
+      "roc_auc_ovr": 0.9529
+    },
+    "Random Forest": {
+      "accuracy": 0.8692,
+      "precision_macro": 0.8474,
+      "recall_macro": 0.8287,
+      "f1_macro": 0.8363,
+      "f1_weighted": 0.8668,
+      "roc_auc_ovr": 0.963
+    },
+    "SVM (RBF)": {
+      "accuracy": 0.8615,
+      "precision_macro": 0.8396,
+      "recall_macro": 0.824,
+      "f1_macro": 0.8298,
+      "f1_weighted": 0.8591,
+      "roc_auc_ovr": 0.967
+    },
+    "Deep Neural Network (DNN)": {
+      "accuracy": 0.8308,
+      "precision_macro": 0.794,
+      "recall_macro": 0.8292,
+      "f1_macro": 0.8084,
+      "f1_weighted": 0.8313,
+      "roc_auc_ovr": 0.9546
+    }
+  },
+  "cv_macro_f1": {
+    "Logistic Regression": 0.8226,
+    "Random Forest": 0.8194,
+    "SVM (RBF)": 0.8166,
+    "Deep Neural Network (DNN)": 0.785
+  }
+}
