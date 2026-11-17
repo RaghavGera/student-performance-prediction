@@ -45,7 +45,11 @@ from common import (ALL_FEATURES, CATEGORICAL_FEATURES, CLASS_NAMES, CLASS_RULES
                     INK_2, MODELS_DIR, NUMERIC_FEATURES, OUTPUTS_DIR, SEED, SERIES, SURFACE, TARGET,
                     apply_chart_style, grade_to_class, load_data)
 
-N_SELECTED = 15      # number of raw input features kept after feature selection
+N_SELECTED = 15      # candidate features kept by the filter ranking (stage 1)
+PRUNE_THRESHOLD = 0.002   # stage 2: keep a candidate only if shuffling it lowers CV macro F1 by more than this
+PRUNE_REPEATS = 10
+PRUNE_CFG = {"hidden_units": (64, 32), "dropout": 0.2, "l2": 1e-3, "learning_rate": 1e-3,
+             "batch_size": 32, "batch_norm": False}
 TEST_SIZE = 0.20
 MAX_EPOCHS = 200
 SEQUENTIAL = LinearSegmentedColormap.from_list("seq", ["#eef4fc", "#86b6ef", "#2a78d6", "#0d366b"])
@@ -135,6 +139,32 @@ def sample_configs(n, rng):
     return configs
 
 
+def prune_features(X_train, y_train, features):
+    """Stage 2 of feature selection: permutation importance of each candidate for a DNN.
+
+    3-fold CV on the training data only: train a DNN on two folds, then shuffle one feature at a time in the
+    third fold and measure the drop in macro F1. Features whose shuffling does not hurt are removed.
+    """
+    rng = np.random.default_rng(SEED)
+    skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=SEED)
+    drops = {f: [] for f in features}
+    for tr_idx, val_idx in skf.split(X_train, y_train):
+        X_tr, X_val, y_val = X_train.iloc[tr_idx], X_train.iloc[val_idx], y_train[val_idx]
+        pre = make_preprocessor(features)
+        model, _ = fit_dnn(PRUNE_CFG, pre.fit_transform(X_tr), y_train[tr_idx], pre.transform(X_val), y_val)
+        score = lambda d: f1_score(y_val, model(pre.transform(d), training=False).numpy().argmax(1),
+                                   average="macro")
+        base = score(X_val)
+        for f in features:
+            for _ in range(PRUNE_REPEATS):
+                shuffled = X_val.copy()
+                shuffled[f] = rng.permutation(shuffled[f].values)
+                drops[f].append(base - score(shuffled))
+    importance = pd.Series({f: float(np.mean(v)) for f, v in drops.items()})
+    kept = [f for f in features if importance[f] > PRUNE_THRESHOLD]
+    return kept, importance
+
+
 def tune_dnn(X_train, y_train, features, n_trials):
     """Random search with 3-fold stratified cross-validation; preprocessing is refit inside every fold."""
     rng = np.random.default_rng(SEED)
@@ -184,14 +214,21 @@ def save(fig, name):
 
 def plot_feature_ranking(rank):
     r = rank.iloc[::-1]
-    fig, axes = plt.subplots(1, 2, figsize=(11, 8), sharey=True)
-    for ax, col, title in zip(axes, ["mutual_info", "rf_importance"],
-                              ["Mutual information with the category", "Random-forest importance"]):
-        ax.barh(r["feature"], r[col], color=[SERIES[0] if s else "#c3c2b7" for s in r["selected"]], height=0.7)
+    colors = [SERIES[0] if s else SERIES[3] if c else "#c3c2b7" for s, c in zip(r["selected"], r["candidate"])]
+    fig, axes = plt.subplots(1, 3, figsize=(15, 8), sharey=True)
+    panels = [("mutual_info", "1a. Mutual information"), ("rf_importance", "1b. Random-forest importance"),
+              ("perm_importance", "2. DNN permutation importance\n(candidates only, CV on training data)")]
+    for ax, (col, title) in zip(axes, panels):
+        ax.barh(r["feature"], r[col].fillna(0), color=colors, height=0.7)
         ax.set_title(title)
         ax.grid(axis="y", visible=False)
-    axes[0].legend(handles=[plt.Rectangle((0, 0), 1, 1, color=SERIES[0]), plt.Rectangle((0, 0), 1, 1, color="#c3c2b7")],
-                   labels=[f"Selected (top {int(rank['selected'].sum())})", "Dropped"], loc="lower right")
+    axes[2].axvline(PRUNE_THRESHOLD, color=INK_2, linewidth=0.8, linestyle="--")
+    axes[2].axvline(0, color=INK_2, linewidth=0.8)
+    n_cand = int(rank["candidate"].sum())
+    axes[0].legend(handles=[plt.Rectangle((0, 0), 1, 1, color=c) for c in (SERIES[0], SERIES[3], "#c3c2b7")],
+                   labels=[f"Selected ({int(rank['selected'].sum())})",
+                           f"Candidate, dropped in stage 2 ({n_cand - int(rank['selected'].sum())})",
+                           f"Dropped in stage 1 ({len(rank) - n_cand})"], loc="lower right")
     fig.suptitle("Feature selection: ranking of all 32 input attributes", x=0.01, ha="left",
                  fontsize=13, fontweight="bold")
     fig.tight_layout(rect=(0, 0, 1, 0.96))
@@ -278,9 +315,17 @@ def main(n_trials):
           f"Class counts (train): {dict(zip(CLASS_NAMES, np.bincount(y_train).tolist()))}")
 
     # 2. Feature selection ----------------------------------------------------
-    features, rank = select_features(X_train, y_train, N_SELECTED)
+    candidates, rank = select_features(X_train, y_train, N_SELECTED)
+    print(f"[2/6] Stage 1 (mutual information + RF importance): {len(candidates)} candidates: {candidates}")
+    features, perm = prune_features(X_train[candidates], y_train, candidates)
+    rank["perm_importance"] = rank["feature"].map(perm)
+    rank["candidate"] = rank["feature"].isin(candidates)
+    rank["selected"] = rank["feature"].isin(features)
     rank.round(4).to_csv(OUTPUTS_DIR / "feature_ranking.csv", index=False)
-    print(f"[2/6] Selected {len(features)} of {len(ALL_FEATURES)} features: {features}")
+    print("      Stage 2 (DNN permutation importance, 3-fold CV on training data):")
+    for f, v in perm.sort_values(ascending=False).items():
+        print(f"        {f:<10} {v:+.4f}  {'keep' if f in features else 'drop'}")
+    print(f"      Selected {len(features)} of {len(ALL_FEATURES)} features: {features}")
     X_train, X_test = X_train[features].reset_index(drop=True), X_test[features].reset_index(drop=True)
 
     # 3. Traditional ML baselines --------------------------------------------
@@ -361,7 +406,7 @@ def main(n_trials):
         "dnn_hyperparameters": {**best_cfg, "hidden_units": list(best_cfg["hidden_units"])},
         "dnn_epochs_trained": len(history.history["loss"]),
         "ml_best_params": best_params, "best_traditional_model": best_ml,
-        "test_metrics": {r["model"]: {k: round(float(v), 4) for k, v in r.items() if k != "model"} for r in results},
+        "test_metrics": {r["model"]: {k: round(float(v), 6) for k, v in r.items() if k != "model"} for r in results},
         "cv_macro_f1": {k: round(float(v), 4) for k, v in cv_scores.items()},
     }
     (MODELS_DIR / "metadata.json").write_text(json.dumps(metadata, indent=2, default=str), encoding="utf-8")
