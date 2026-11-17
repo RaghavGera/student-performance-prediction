@@ -38,7 +38,7 @@ streamlit run app.py              # web app at http://localhost:8501
 | `common.py` | Shared settings: paths, grade-to-category rule, feature descriptions, chart style |
 | `eda.py` | Exploratory data analysis: text summary and six figures |
 | `train.py` | Preprocessing, feature selection, traditional ML, DNN tuning, final training, evaluation |
-| `app.py` | Streamlit app: prediction form, model performance, data exploration |
+| `app.py` | Streamlit app: prediction form, model performance |
 | `data/` | The dataset and its attribute description |
 | `models/` | Trained DNN, fitted preprocessor, traditional models, `metadata.json` |
 | `outputs/` | Figures, comparison table, tuning results, feature ranking, training log |

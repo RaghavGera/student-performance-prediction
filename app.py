@@ -122,15 +122,6 @@ def performance_tab(meta):
             st.image(str(FIG_DIR / file), caption=caption, width="stretch")
 
 
-def eda_tab():
-    st.subheader("Exploratory data analysis")
-    figures = sorted(FIG_DIR.glob("0[1-6]_*.png"))
-    if not figures:
-        st.info("Run `python eda.py` to generate the EDA figures.")
-    for fig in figures:
-        st.image(str(fig), width="stretch")
-
-
 def main():
     st.title("🎓 Student Academic Performance Prediction")
     st.caption("Deep Neural Network trained on the UCI Student Performance dataset (Portuguese course)")
@@ -150,13 +141,11 @@ def main():
             st.markdown(f"- **{name}** — {CLASS_RULES[name]}")
         st.markdown(f"**Inputs used:** {len(meta['selected_features'])} selected features")
 
-    tab_predict, tab_perf, tab_eda = st.tabs(["Predict", "Model performance", "Data exploration"])
+    tab_predict, tab_perf = st.tabs(["Predict", "Model performance"])
     with tab_predict:
         prediction_tab(model, preprocessor, meta)
     with tab_perf:
         performance_tab(meta)
-    with tab_eda:
-        eda_tab()
 
 
 if __name__ == "__main__":
